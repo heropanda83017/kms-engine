@@ -1,0 +1,67 @@
+{
+  "checkpoint_key": "stock-research-000725-20260607",
+  "pipeline": "stock-research-000725-20260607",
+  "created_at": "2026-06-07T20:27:50",
+  "updated_at": "2026-06-07T20:29:31",
+  "total_steps": 13,
+  "completed_steps": [
+    "d1_kline",
+    "d2_financial",
+    "d3_capital",
+    "d4_research",
+    "d5_dragon",
+    "d6_announcement",
+    "d7_shareholder",
+    "d8_news",
+    "d9_report_reading",
+    "contrast",
+    "synthesize",
+    "deliver",
+    "define"
+  ],
+  "steps_plan": [
+    {
+      "id": "define"
+    },
+    {
+      "id": "d1_kline"
+    },
+    {
+      "id": "d2_financial"
+    },
+    {
+      "id": "d3_capital"
+    },
+    {
+      "id": "d4_research"
+    },
+    {
+      "id": "d5_dragon"
+    },
+    {
+      "id": "d6_announcement"
+    },
+    {
+      "id": "d7_shareholder"
+    },
+    {
+      "id": "d8_news"
+    },
+    {
+      "id": "d9_report_reading"
+    },
+    {
+      "id": "contrast"
+    },
+    {
+      "id": "synthesize"
+    },
+    {
+      "id": "deliver"
+    }
+  ],
+  "status": "completed",
+  "metadata": {
+    "desc": "个股研究 京东方A(000725) 20260607"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "checkpoint_key": "stock-research-688981-20260607",
+  "pipeline": "stock-research-688981-20260607",
+  "created_at": "2026-06-07T21:17:05",
+  "updated_at": "2026-06-07T21:17:19",
+  "total_steps": 13,
+  "completed_steps": [
+    "define",
+    "d1",
+    "d2",
+    "d4",
+    "deliver",
+    "d5",
+    "d7",
+    "d8",
+    "synthesize",
+    "contrast",
+    "d3",
+    "d6",
+    "d9"
+  ],
+  "steps_plan": [
+    {
+      "id": "define"
+    },
+    {
+      "id": "d1"
+    },
+    {
+      "id": "d2"
+    },
+    {
+      "id": "d3"
+    },
+    {
+      "id": "d4"
+    },
+    {
+      "id": "d5"
+    },
+    {
+      "id": "d6"
+    },
+    {
+      "id": "d7"
+    },
+    {
+      "id": "d8"
+    },
+    {
+      "id": "d9"
+    },
+    {
+      "id": "contrast"
+    },
+    {
+      "id": "synthesize"
+    },
+    {
+      "id": "deliver"
+    }
+  ],
+  "status": "completed",
+  "metadata": {
+    "desc": "个股研究 中芯国际(688981) 20260607"
+  }
+}

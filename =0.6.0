@@ -1,0 +1,13 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: click in /home/heropanda/.local/lib/python3.14/site-packages (8.4.1)
+Collecting msgspec
+  Using cached msgspec-0.21.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (5.8 kB)
+Requirement already satisfied: anyio in /home/heropanda/.local/lib/python3.14/site-packages (4.13.0)
+Collecting protego
+  Using cached protego-0.6.0-py3-none-any.whl.metadata (6.4 kB)
+Requirement already satisfied: idna>=2.8 in /usr/lib/python3/dist-packages (from anyio) (3.11)
+Downloading msgspec-0.21.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (224 kB)
+Downloading protego-0.6.0-py3-none-any.whl (10 kB)
+Installing collected packages: protego, msgspec
+
+Successfully installed msgspec-0.21.1 protego-0.6.0

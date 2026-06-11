@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.bak
+
+# KMS
+config/.link_registry.json
+xiaohongshu_cookies.txt
+*.wav
+*.mp4
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
