@@ -290,6 +290,33 @@ def cmd_search(args):
     type_filter = getattr(args, 'type_filter', None) or ""
     use_rrf = getattr(args, 'rrf', False) or getattr(args, 'mode', None) is not None
     mode = getattr(args, 'mode', 'rrf') if use_rrf else None
+    use_fusion = getattr(args, 'fusion', False)
+
+    if use_fusion:
+        # KG+RRF 融合搜索
+        try:
+            sys.path.insert(0, str(SCRIPTS_DIR))
+            from kg_search import fusion_search
+            result = fusion_search(keyword, boost=0.3)
+            analysis = result.get("analysis", {})
+            fused = result.get("fused_results", [])
+            print(f"\n🧠 KG+RRF 融合搜索: \"{keyword}\"")
+            if analysis.get("matched_entity"):
+                print(f"  精确匹配: {analysis['matched_entity']} ({analysis.get('matched_etype', '?')})")
+            if fused:
+                for i, (path, final, _, rrf, kg, reasons) in enumerate(fused[:10], 1):
+                    kg_tag = f" KG+{kg:.1f}" if kg > 0 else ""
+                    reason_str = f" — {'; '.join(reasons[:1])}" if reasons else ""
+                    print(f"  #{i:2d} {final:.3f}  {path}{kg_tag}{reason_str}")
+            else:
+                print("  (无融合结果)")
+            return
+        except ImportError as e:
+            print(f"⚠️ 融合搜索不可用: {e}")
+            print("  回退到 RRF 搜索...")
+        except Exception as e:
+            print(f"⚠️ 融合搜索失败: {e}")
+            print("  回退到 RRF 搜索...")
 
     if use_rrf:
         # 使用 RRF 混合搜索
@@ -502,6 +529,8 @@ def main():
                                help="RRF混合搜索 (关键词+语义, 须先运行 kms index build)")
     search_parser.add_argument("--mode", choices=["rrf", "fts5", "vector"], default=None,
                                help="搜索模式 (rrf=混合, fts5=纯关键词, vector=纯语义)")
+    search_parser.add_argument("--fusion", action="store_true",
+                               help="KG+RRF融合搜索（实验性，基于知识图谱增强排序）")
     # index
     index_parser = sub.add_parser("index", help="RRF索引管理")
     index_sub = index_parser.add_subparsers(dest="index_cmd")
@@ -534,6 +563,23 @@ def main():
     resolve_parser.add_argument("query", nargs="+", help="用户查询文本")
     resolve_parser.add_argument("--top-k", type=int, default=5, help="返回前N个匹配 (默认5)")
 
+    # kg — 知识图谱实体抽取
+    kg_parser = sub.add_parser("kg", help="知识图谱管理: 实体抽取/查询")
+    kg_sub = kg_parser.add_subparsers(dest="kg_cmd")
+    
+    kg_extract_parser = kg_sub.add_parser("extract", help="从笔记提取实体和关系")
+    kg_extract_parser.add_argument("note", help="笔记文件路径")
+    kg_extract_parser.add_argument("--dry-run", action="store_true", help="预览不存储")
+    
+    kg_stats_parser = kg_sub.add_parser("stats", help="查看实体存储统计")
+    kg_search_parser = kg_sub.add_parser("search", help="搜索实体")
+    kg_search_parser.add_argument("query", help="搜索关键词")
+    kg_related_parser = kg_sub.add_parser("related", help="查看实体的关联")
+    kg_related_parser.add_argument("name", help="实体名称")
+    
+    kg_scan_parser = kg_sub.add_parser("scan", help="全库扫描提取实体")
+    kg_scan_parser.add_argument("--force", action="store_true", help="强制重提忽略进度")
+
     args = parser.parse_args()
 
     if args.command == "link":
@@ -562,6 +608,37 @@ def main():
         cmd_cleanup()
     elif args.command == "checkpoint":
         cmd_checkpoint(args)
+    elif args.command == "kg":
+        cmd_kg(args)
+
+
+def cmd_kg(args):
+    """知识图谱管理：委托给 kg_extract.py"""
+    kg_extract = SCRIPTS_DIR / "kg_extract.py"
+    if not kg_extract.exists():
+        print("❌ kg_extract.py 未安装")
+        return
+    
+    kg_cmd = getattr(args, "kg_cmd", None)
+    if kg_cmd == "extract":
+        cmd = [sys.executable, str(kg_extract), args.note]
+        if args.dry_run:
+            cmd.append("--dry-run")
+    elif kg_cmd == "stats":
+        cmd = [sys.executable, str(kg_extract), "--stats"]
+    elif kg_cmd == "search":
+        cmd = [sys.executable, str(kg_extract), "--search", args.query]
+    elif kg_cmd == "related":
+        cmd = [sys.executable, str(kg_extract), "--related", args.name]
+    elif kg_cmd == "scan":
+        cmd = [sys.executable, str(kg_extract), "--all"]
+        if args.force:
+            cmd.append("--force")
+    else:
+        print("用法: kms kg {extract|stats|search|related|scan}")
+        return
+    
+    subprocess.run(cmd)
 
 
 if __name__ == "__main__":

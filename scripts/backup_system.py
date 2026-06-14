@@ -48,7 +48,7 @@ HERMES_ROOT = Path.home() / ".hermes" / "profiles"
 BACKUP_ROOT = Path("/mnt/e/AIGC-KB/备份")
 WIKI_DIR = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB")
 KMS_DIR = Path("/mnt/e/AIGC-KB/kms-engine")
-IE_DIR = Path("/mnt/e/AIGC-KB/输出/investment-engine")
+IE_DIR = Path("/mnt/e/AIGC-KB/investment-engine")
 OUTPUT_DIR = Path("/mnt/e/AIGC-KB/输出")
 
 # ── 需要备份的 profile 名称 ──

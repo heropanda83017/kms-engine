@@ -354,25 +354,25 @@ def cmd_finalize(args):
 
     # ── Step 1: smart_fuse ──
     if "fusion_check" not in completed:
-        print("\n[1/5] 🔍 融合检查 (smart_fuse)")
+        print("\n[[1/5] 🔍 融合检查 (smart_fuse)")
         cmd_fusion(args)
         if HAS_CHECKPOINT:
             cp_step_done(cp_name, "fusion_check")
     else:
-        print("\n[1/5] 🔍 融合检查 ✅ (已跳过)")
+        print("\n[[1/5] 🔍 融合检查 ✅ (已跳过)")
 
     # ── Step 2: wiki-link ──
     if "link_update" not in completed:
-        print("\n[2/5] 🔗 链接更新 (wiki-link)")
+        print("\n[[2/5] 🔗 链接更新 (wiki-link)")
         cmd_link(args)
         if HAS_CHECKPOINT:
             cp_step_done(cp_name, "link_update")
     else:
-        print("\n[2/5] 🔗 链接更新 ✅ (已跳过)")
+        print("\n[[2/5] 🔗 链接更新 ✅ (已跳过)")
 
     # ── Step 3: sync-check ──
     if "sync_check" not in completed:
-        print("\n[3/5] 📋 同步检查 (sync-check report)")
+        print("\n[[3/5] 📋 同步检查 (sync-check report)")
         sync_check = SCRIPTS_DIR / "wiki_sync_check.py"
         if sync_check.exists():
             try:
@@ -388,21 +388,22 @@ def cmd_finalize(args):
         if HAS_CHECKPOINT:
             cp_step_done(cp_name, "sync_check")
     else:
-        print("\n[3/5] 📋 同步检查 ✅ (已跳过)")
+        print("\n[[3/5] 📋 同步检查 ✅ (已跳过)")
 
     # ── Step 4: EVOLUTION.md ──
     if "evolution_update" not in completed:
-        print("\n[4/5] 📝 EVOLUTION.md 更新")
+        print("\n[[4/5] 📝 EVOLUTION.md 更新")
         entry = _build_evolution_entry(wiki_path)
         _append_evolution(entry, date_str)
         if HAS_CHECKPOINT:
             cp_step_done(cp_name, "evolution_update")
     else:
-        print("\n[4/5] 📝 EVOLUTION.md 更新 ✅ (已跳过)")
+        print("\n[[4/5] 📝 EVOLUTION.md 更新 ✅ (已跳过)")
 
     # ── Step 5: Checklist ──
     if "checklist" not in completed:
-        print("\n[5/5] ✅ 闭环确认清单")
+        print("\
+[5/6] ✅ 闭环确认清单")
         print()
         print("  - [ ] ① 来源记录 ✓ (skeleton 生成)")
         print("  - [ ] ② 内容提取 ✓ (agent 填写)")
@@ -416,7 +417,19 @@ def cmd_finalize(args):
         if HAS_CHECKPOINT:
             cp_step_done(cp_name, "checklist")
     else:
-        print("\n[5/5] ✅ 闭环确认清单 ✅ (已跳过)")
+        print("\
+[5/6] ✅ 闭环确认清单 ✅ (已跳过)")
+
+    # ── Step 6: KG 实体抽取 ──
+    if "kg_extract" not in completed:
+        print("\
+[6/6] 🧠 知识图谱实体抽取")
+        _run_kg_extract(wiki_path)
+        if HAS_CHECKPOINT:
+            cp_step_done(cp_name, "kg_extract")
+    else:
+        print("\
+[6/6] 🧠 知识图谱实体抽取 ✅ (已跳过)")
 
     print("=" * 50)
     print("  🎉 一键归档完成")
@@ -424,6 +437,37 @@ def cmd_finalize(args):
         cp_mark_complete(cp_name)
         print(f"  📍 Checkpoint '{cp_name}' 已完成")
     print("=" * 50)
+
+
+def _run_kg_extract(wiki_path: Path):
+    """调用 kg_extract.py 提取笔记中的实体和关系"""
+    kg_extract = SCRIPTS_DIR / "kg_extract.py"
+    if not kg_extract.exists():
+        print("  ⚠️  kg_extract.py 未安装，跳过实体抽取")
+        return
+    try:
+        r = subprocess.run(
+            [sys.executable, str(kg_extract), str(wiki_path)],
+            capture_output=True, text=True, timeout=90,
+        )
+        if r.returncode == 0:
+            # 在输出中找提取结果行
+            for line in r.stdout.split("\\n"):
+                if "提取" in line and "实体" in line:
+                    print(f"  ✅ {line.strip()}")
+                    break
+            else:
+                # 显示最后输出行
+                last = [l.strip() for l in r.stdout.split("\\n") if l.strip()]
+                if last:
+                    print(f"  ✅ {last[-1]}")
+        else:
+            err = r.stderr[:300] if r.stderr else "无错误输出"
+            print(f"  ⚠️  kg_extract 返回码 {r.returncode}: {err}")
+    except subprocess.TimeoutExpired:
+        print("  ⚠️  kg_extract 超时 (90s)，跳过实体抽取")
+    except Exception as e:
+        print(f"  ⚠️  kg_extract 异常: {e}")
 
 
 # ─── 入口 ────────────────────────────────────────────────
@@ -446,29 +490,3 @@ def main():
     p_s.add_argument("--url", default="", help="链接")
     p_s.add_argument("--date", default="", help="日期 YYYY-MM-DD")
 
-    # fusion
-    p_f = sub.add_parser("fusion", help="对新笔记执行融合检查")
-    p_f.add_argument("wiki_path", help="wiki 笔记路径")
-
-    # link
-    p_l = sub.add_parser("link", help="更新全库双向链接")
-
-    # finalize
-    p_fn = sub.add_parser("finalize", help="一键闭环")
-    p_fn.add_argument("wiki_path", help="wiki 笔记路径")
-    p_fn.add_argument("--date", default="", help="日期 YYYY-MM-DD")
-
-    parsed = parser.parse_args()
-
-    if parsed.command == "skeleton":
-        cmd_skeleton(parsed)
-    elif parsed.command == "fusion":
-        cmd_fusion(parsed)
-    elif parsed.command == "link":
-        cmd_link(parsed)
-    elif parsed.command == "finalize":
-        cmd_finalize(parsed)
-
-
-if __name__ == "__main__":
-    main()

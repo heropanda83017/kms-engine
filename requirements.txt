@@ -1,19 +1,19 @@
-# KMS Engine — 依赖声明
-# pip install -r requirements.txt
-
+# KMS Engine 依赖
+# Python 3.11+
 
 # 核心依赖
-tushare>=1.0
-akshare>=1.0
-pandas>=2.0
-numpy>=1.24
+# 系统安装（非 pip 处理）
+# sqlite3 (标准库)
 
-# KMS 特有依赖
-yt-dlp>=2023
-faster-whisper>=1.0
-imageio-ffmpeg>=0.4
-websocket-client>=1.0
-browser-cookie3>=0.19
+# LLM 调用
+litellm>=1.40.0
 
-# 开发依赖
-pytest>=7.0
+# 数据科学
+numpy>=1.24.0
+pandas>=1.5.0
+
+# 测试
+pytest>=7.0.0
+
+# 文档
+pyyaml>=6.0

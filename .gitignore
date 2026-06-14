@@ -2,12 +2,21 @@
 __pycache__/
 *.py[cod]
 *.bak
+*.tmp
 
-# KMS
+# KMS 数据文件（可重建）
+kms.db
+config/kg-store/kg.db
 config/.link_registry.json
-xiaohongshu_cookies.txt
-*.wav
-*.mp4
+
+# 环境变量
+.env
+*.env
+.env.*
+
+# 缓存
+config/cache/
+_archive/
 
 # OS
 .DS_Store
@@ -16,3 +25,8 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# 临时文件
+*.wav
+*.mp4
+xiaohongshu_cookies.txt
