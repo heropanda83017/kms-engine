@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-14T09:35:32.245821",
+  "updated_at": "2026-06-14T10:08:43.911969",
   "locked_by": "pipeline",
   "regime": {
     "code": "bull_growth",
@@ -63,36 +63,6 @@
     }
   ],
   "history": [
-    {
-      "regime": {
-        "code": "bull_growth",
-        "label": "🐂 牛市·成长主线",
-        "confidence": 0.5
-      },
-      "primary": {
-        "id": "S3",
-        "name": "景气成长",
-        "conditions": "PEG<1+营收增速>30%+ROE>10%",
-        "track": "TBD",
-        "allocation": 0.6
-      },
-      "locked_at": "2026-06-13T19:43:20.102959"
-    },
-    {
-      "regime": {
-        "code": "utest",
-        "label": "UnitTest",
-        "confidence": 0.5
-      },
-      "primary": {
-        "id": "S1",
-        "name": "深度价值",
-        "conditions": "PE<12+PB<1.5+股息率>3%+ROE>5%",
-        "track": "Track A",
-        "allocation": 0.6
-      },
-      "locked_at": "2026-06-13T19:45:27.950433"
-    },
     {
       "regime": {
         "code": "bull_growth",
@@ -212,6 +182,36 @@
         "allocation": 0.6
       },
       "locked_at": "2026-06-14T09:35:32.234439"
+    },
+    {
+      "regime": {
+        "code": "bull_growth",
+        "label": "🐂 牛市·成长主线",
+        "confidence": 0.5
+      },
+      "primary": {
+        "id": "S3",
+        "name": "景气成长",
+        "conditions": "PEG<1+营收增速>30%+ROE>10%",
+        "track": "TBD",
+        "allocation": 0.6
+      },
+      "locked_at": "2026-06-14T09:35:32.245821"
+    },
+    {
+      "regime": {
+        "code": "utest",
+        "label": "UnitTest",
+        "confidence": 0.5
+      },
+      "primary": {
+        "id": "S1",
+        "name": "深度价值",
+        "conditions": "PE<12+PB<1.5+股息率>3%+ROE>5%",
+        "track": "Track A",
+        "allocation": 0.6
+      },
+      "locked_at": "2026-06-14T10:08:43.896881"
     }
   ]
 }

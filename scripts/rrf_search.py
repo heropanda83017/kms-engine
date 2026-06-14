@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RRF混合搜索引擎 — Reciprocal Rank Fusion hybrid search
+RRF混合搜索引擎 - Reciprocal Rank Fusion hybrid search
 Combines SQLite FTS5 (BM25) + sqlite-vec (MiniMax embeddings) + RRF fusion
 
 数据流:
@@ -44,64 +44,27 @@ BATCH_SIZE = 50
 
 
 # ════════════════════════════════════════════════
-#  MiniMax 嵌入 API
+#  嵌入 API-已停用 - MiniMax 不再使用-
+#  如需恢复-在此实现 _get_embeddings(texts) → list[list[float]]
 # ════════════════════════════════════════════════
 
-_MINIMAX_KEY = None
+VECTOR_DIM = 1536  # 保留维度常量，供未来使用
 
-def _get_minimax_key():
-    global _MINIMAX_KEY
-    if _MINIMAX_KEY:
-        return _MINIMAX_KEY
-    env_paths = [
-        Path.home() / ".hermes" / "profiles" / "ai-investor" / ".env",
-        Path.home() / ".hermes" / ".env",
-        Path("/mnt/e/AIGC-KB/.env"),
-    ]
-    for env_path in env_paths:
-        if env_path.exists():
-            for line in env_path.read_text(encoding="utf-8").splitlines():
-                if "MINIMAX_CN_API_KEY" in line and "=" in line:
-                    raw = line.split("=", 1)[1].strip()
-                    _MINIMAX_KEY = raw.strip("'\"")
-                    return _MINIMAX_KEY
-    raise RuntimeError("MINIMAX_CN_API_KEY not found in any .env")
+def _get_embeddings(texts: list) -> list:
+    """嵌入生成 — 当前返回空（向量检索已禁用）
+
+    如需启用: 实现此函数，返回 list[list[float]]，每向量 VECTOR_DIM 维
+    """
+    return [[] for _ in texts]
 
 
-def _embed_batch(texts, embed_type="db"):
-    """调用 MiniMax embedding API 获取一批文本的向量"""
-    import urllib.request
-    key = _get_minimax_key()
-    url = "https://api.minimaxi.com/v1/embeddings"
-    data = json.dumps({
-        "model": "embo-01",
-        "texts": texts,
-        "type": embed_type,
-    }).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers={
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {key}",
-    })
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-    vectors = result.get("vectors", [])
-    if not vectors:
-        raise RuntimeError(f"MiniMax embedding returned empty vectors: {result}")
-    return vectors
+def embed_texts(texts, embed_type="db", batch_size=50):
+    """嵌入生成（已禁用，返回空向量列表）
 
+    如需启用: 配置 embedding API 后恢复实现
+    """
+    return [[]] if texts else []
 
-def embed_texts(texts, batch_size=BATCH_SIZE, embed_type="db"):
-    """将文本列表分批嵌入, 返回 [vector, ...]"""
-    all_vectors = []
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i + batch_size]
-        all_vectors.extend(_embed_batch(batch, embed_type))
-    return all_vectors
-
-
-# ════════════════════════════════════════════════
-#  SQLite DB 管理
-# ════════════════════════════════════════════════
 
 def _get_db():
     """获取数据库连接 (带 sqlite-vec 加载)"""
@@ -573,23 +536,16 @@ def search_rrf(query, top_k=10, mode="rrf"):
     # 检查索引是否存在
     meta_count = db.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='wiki_chunk_map'").fetchone()[0]
     if meta_count == 0:
-        return {"error": "索引不存在，请先运行 'python3 rrf_search.py build'", "results": []}
+        return {"error": "索引不存在-请先运行 'python3 rrf_search.py build'", "results": []}
 
     # 1. FTS5 关键词搜索
     fts5_results = _fts5_search(db, query, top_k=20) if mode in ("rrf", "fts5") else []
 
-    # 向量搜索
+    # 向量搜索（已禁用 — 嵌入服务已停用）
     vector_results = []
     if mode in ("rrf", "vector"):
-        try:
-            query_vec = embed_texts([query], embed_type="query")[0]
-            raw_vector = _vector_search(db, query_vec, top_k=20)
-            for rv in raw_vector:
-                path = _resolve_rowid_fast(db, rv["rowid"])
-                if path:
-                    vector_results.append({"path": path, **rv})
-        except Exception as e:
-            print(f"⚠️ 向量搜索失败: {e}")
+        # 向量检索已禁用，仅使用 FTS5 结果
+        pass
 
     # 3. RRF 融合
     if mode == "rrf":
@@ -664,7 +620,7 @@ def show_status():
         meta[row[0]] = row[1]
 
     print("=" * 50)
-    print("  RRF 混合搜索 — 索引状态")
+    print("  RRF 混合搜索 - 索引状态")
     print("=" * 50)
     wc = WIKI_DIR
     actual_files = len(list(wc.rglob("*.md"))) - len(list(wc.rglob(".obsidian/**/*.md")))
