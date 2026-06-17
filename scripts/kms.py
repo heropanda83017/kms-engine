@@ -594,6 +594,19 @@ def main():
     react_parser.add_argument("agent", choices=["router", "validator", "pipeline", "enricher", "reviewer"], help="Agent 类型")
     react_parser.add_argument("goal", nargs="+", help="目标描述")
 
+    # process — PDF 书籍处理流水线
+    process_parser = sub.add_parser("process", help="内容处理流水线: pdf / url / video")
+    process_sub = process_parser.add_subparsers(dest="process_cmd")
+
+    pdf_parser = process_sub.add_parser("pdf", help="PDF 书籍 → 结构化笔记 + Skill")
+    pdf_parser.add_argument("pdf", help="PDF 文件路径")
+    pdf_parser.add_argument("--output", "-o", default="", help="输出目录 (默认 wiki/05-读书笔记)")
+    pdf_parser.add_argument("--make-skill", action="store_true", help="生成 Hermes Skill")
+    pdf_parser.add_argument("--inject-agent", default="", help="注入到指定 Agent")
+    pdf_parser.add_argument("--skip-fuse", action="store_true", help="跳过 smart-fuse")
+    pdf_parser.add_argument("--skip-link", action="store_true", help="跳过 wiki-link")
+    pdf_parser.add_argument("--json", action="store_true", help="JSON 格式输出")
+
     add_checkpoint_subparser(sub)
 
     # enrich
@@ -694,6 +707,8 @@ def main():
         if agent_cls:
             agent = agent_cls()
             agent.run(goal)
+    elif args.command == "process":
+        cmd_process(args)
 
 
 def cmd_kg(args):
@@ -725,6 +740,25 @@ def cmd_kg(args):
     subprocess.run(cmd)
 
 
+def cmd_process(args):
+    """处理 process 子命令"""
+    if args.process_cmd == "pdf":
+        from process_pdf import process_pdf
+        result = process_pdf(
+            args.pdf, args.output,
+            make_skill_flag=args.make_skill,
+            inject_agent=args.inject_agent,
+            skip_fuse=args.skip_fuse,
+            skip_link=args.skip_link,
+        )
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        sys.exit(0 if result["success"] else 1)
+    else:
+        print(f"未知 process 子命令: {args.process_cmd}")
+        print("支持: pdf")
+
+
 if __name__ == "__main__":
     # Intent Router: 当第一个参数不是已知子命令时走自然语言路由
     if len(sys.argv) > 1:
@@ -732,7 +766,8 @@ if __name__ == "__main__":
             "link", "fuse", "status", "search", "cleanup",
             "health", "gate", "checkpoint", "index", "kg",
             "smart-fuse", "fusion-watch", "enrich", "resolve",
-            "sync-check", "score", "validate", "pipeline", "analytics", "react"
+            "sync-check", "score", "validate", "pipeline", "analytics", "react",
+            "process"
         ]
         if sys.argv[1] not in known_commands:
             from kms_router import IntentRouter

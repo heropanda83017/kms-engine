@@ -46,7 +46,8 @@ ALWAYS_LOADED = {
     
     # === 学习 ===
     "youtube-content",        # YouTube 视频→笔记
-    "book-note-maker",        # PDF 书籍→笔记
+    "book-note-maker",        # PDF 书籍→笔记 (旧入口)
+    "kms process pdf",        # PDF 书籍→笔记 (KMS 统一入口)
     "systematic-learning",    # 学习路径构建
     
     # === 多模态 ===

@@ -29,6 +29,10 @@ KMS_DIR = SCRIPT_DIR.parent
 WIKI_DIR = KMS_DIR / "wiki-AIGC-KB"
 DB_PATH = KMS_DIR / "kms.db"
 
+# 确保 scripts/ 在 sys.path 中（共享模块 _text_utils）
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
 # 若 WIKI_DIR 不存在, 尝试父级
 if not WIKI_DIR.exists():
     WIKI_DIR = KMS_DIR.parent / "wiki-AIGC-KB"
@@ -156,28 +160,7 @@ def _strip_markdown(text):
     return text.strip()
 
 
-def _chunk_text(text, max_chars=2000, overlap=300):
-    """将长文本分割成有意义的块, 优先按标题拆分, 用于精确的向量匹配"""
-    # Try splitting by markdown headers first
-    sections = re.split(r'\n(?=#+\s)', text)
-    if len(sections) <= 1:
-        # Fall back to paragraph splitting
-        sections = text.split("\n\n")
-
-    chunks = []
-    current = ""
-    for s in sections:
-        s = s.strip()
-        if not s:
-            continue
-        if len(current) + len(s) > max_chars and current:
-            chunks.append(current)
-            current = current[-overlap:] + "\n\n" + s if overlap else s
-        else:
-            current = (current + "\n\n" + s).strip() if current else s
-    if current:
-        chunks.append(current)
-    return chunks if chunks else [text[:max_chars]]
+from _text_utils import chunk_text as _chunk_text
 
 
 # ════════════════════════════════════════════════
