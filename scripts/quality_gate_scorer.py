@@ -122,7 +122,7 @@ def call_llm(content: str, retries: int = 3) -> dict | None:
                 model=MODEL,
                 messages=[
                     {"role": "system", "content": SCORE_SYSTEM_PROMPT},
-                    {"role": "user", "content": content[:4000]},
+                    {"role": "user", "content": content[:800000]},
                 ],
                 api_key=API_KEY,
                 api_base=API_BASE,

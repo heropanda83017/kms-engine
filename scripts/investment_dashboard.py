@@ -18,12 +18,13 @@ investment_dashboard.py — 全局投资Dashboard (P4-2)
 import json, sys
 from datetime import datetime
 from pathlib import Path
+from _path_setup import WIKI_DIR, KMS_ROOT
 
 KMS_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = KMS_ROOT / "scripts"
 CONFIG_DIR = KMS_ROOT / "config"
 CACHE_DIR = CONFIG_DIR / "cache"
-DASHBOARD_DIR = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB/08-investment/01-数据源与工具/dashboard")
+DASHBOARD_DIR = WIKI_DIR / "08-investment" / "01-数据源与工具" / "dashboard"
 
 sys.path.insert(0, str(SCRIPTS_DIR))
 
@@ -52,7 +53,7 @@ def load_latest_cache() -> dict:
 
 def load_futures_status() -> dict:
     """加载期货信号摘要"""
-    futures_file = Path("/mnt/e/AIGC-KB/kms-engine/futures_output") / "latest_signals.json"
+    futures_file = KMS_ROOT / "futures_output" / "latest_signals.json"
     if not futures_file.exists():
         return {}
     try:

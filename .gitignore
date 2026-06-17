@@ -30,3 +30,9 @@ Thumbs.db
 *.wav
 *.mp4
 xiaohongshu_cookies.txt
+
+# Database files
+*.db
+config/analytics/
+config/session/
+data/wiki_update_tracking.json

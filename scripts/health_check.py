@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from _path_setup import WIKI_DIR
 health_check.py — KMS 第二大脑健康检查引擎
 
 第二大脑健康管理系统 (08-investment/00-系统/第二大脑健康管理系统.md) 的 Layer 2 实现。
@@ -23,7 +24,7 @@ from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 
-WIKI = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB")
+WIKI = WIKI_DIR
 
 
 # ── 检查项 ─────────────────────────────────────────────

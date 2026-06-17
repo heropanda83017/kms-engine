@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from _path_setup import KMS_ROOT
 workflow_orchestrator.py — 面向 AI agent 的运行时 Workflow Orchestrator v2
 
 不是 CLI 工具，是 agent 在 execute_code 中调用的高层 API。
@@ -37,7 +38,7 @@ from pathlib import Path
 from typing import Optional
 
 # ── 路径 ──
-KMS_ENGINE = Path("/mnt/e/AIGC-KB/kms-engine")
+KMS_ENGINE = KMS_ROOT
 for p in [str(KMS_ENGINE), str(KMS_ENGINE / "scripts")]:
     if p not in sys.path:
         sys.path.insert(0, p)

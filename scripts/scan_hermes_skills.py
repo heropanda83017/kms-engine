@@ -8,9 +8,10 @@ SkillSpector 轻量集成 — 扫描 Hermes Agent 所有 SKILL.md 的安全状�
 """
 import sys, os, json, re
 from pathlib import Path
+from _path_setup import KMS_ROOT
 
 # 添加 SkillSpector 源码到路径
-SS_SRC = Path("/mnt/e/AIGC-KB/kms-engine/output/skillspector/src")
+SS_SRC = KMS_ROOT / "output" / "skillspector" / "src"
 sys.path.insert(0, str(SS_SRC))
 
 SKILLS_DIR = Path("/home/heropanda/.hermes/profiles/ai-investor/skills")

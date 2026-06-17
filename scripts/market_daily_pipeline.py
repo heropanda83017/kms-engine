@@ -14,11 +14,12 @@ market_daily_pipeline.py — 每日市场信号管线 (P4-1)
 import json, sys
 from datetime import datetime
 from pathlib import Path
+from _path_setup import WIKI_DIR
 
 # ── 路径 ──
 KMS_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = KMS_ROOT / "scripts"
-REPORT_DIR = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB/08-investment/01-数据源与工具")
+REPORT_DIR = WIKI_DIR / "08-investment" / "01-数据源与工具"
 DASHBOARD_DIR = REPORT_DIR / "dashboard"
 
 sys.path.insert(0, str(SCRIPTS_DIR))

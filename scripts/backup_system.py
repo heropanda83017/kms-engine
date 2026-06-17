@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from _path_setup import WIKI_DIR, KMS_ROOT as KMS_DIR, IE_DIR, OUTPUT_DIR
 backup_system.py — 全体系备份工具 (2026-06-11)
 
 备份范围:
@@ -45,11 +46,7 @@ from pathlib import Path
 
 # ── 路径 ──
 HERMES_ROOT = Path.home() / ".hermes" / "profiles"
-BACKUP_ROOT = Path("/mnt/e/AIGC-KB/备份")
-WIKI_DIR = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB")
-KMS_DIR = Path("/mnt/e/AIGC-KB/kms-engine")
-IE_DIR = Path("/mnt/e/AIGC-KB/investment-engine")
-OUTPUT_DIR = Path("/mnt/e/AIGC-KB/输出")
+BACKUP_ROOT = OUTPUT_DIR.parent / "备份"
 
 # ── 需要备份的 profile 名称 ──
 PROFILES = ["ai-investor", "land-of-dream-planning", "trade-debt"]
@@ -265,7 +262,7 @@ def restore(timestamp: str):
         if src.exists():
             print(f"    ~/.hermes/profiles/{name}/")
 
-    print(f"    /mnt/e/AIGC-KB/ (Wiki + Engines)")
+    print(f"    {KMS_DIR.parent} (Wiki + Engines)")
     print()
     resp = input("  确认恢复? (yes/no): ")
     if resp.lower() != "yes":

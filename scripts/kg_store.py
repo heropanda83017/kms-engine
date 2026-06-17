@@ -118,6 +118,17 @@ def _init_schema():
         CREATE INDEX IF NOT EXISTS idx_entity_notes_path ON entity_notes(note_path);
         CREATE INDEX IF NOT EXISTS idx_relations_source ON relations(source_id);
         CREATE INDEX IF NOT EXISTS idx_relations_target ON relations(target_id);
+
+        CREATE TABLE IF NOT EXISTS note_anchors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_path TEXT NOT NULL,
+            anchor_type TEXT NOT NULL,
+            content TEXT NOT NULL,
+            relevance REAL DEFAULT 1.0,
+            created TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_anchors_note ON note_anchors(note_path);
+        CREATE INDEX IF NOT EXISTS idx_anchors_type ON note_anchors(anchor_type);
     """)
     if _conn:
         _conn.commit()
@@ -383,6 +394,67 @@ def get_notes_for_entity(entity_name: str) -> list:
         ORDER BY en.occurrences DESC
     """, (entity_name,)).fetchall()
     return [dict(r) for r in rows]
+
+
+# ── 认知锚点 API ──────────────────────────────────
+
+def add_anchor(note_path: str, anchor_type: str, content: str,
+               relevance: float = 1.0) -> bool:
+    """添加认知锚点"""
+    c = _get_conn()
+    now = _now()
+    try:
+        c.execute("""
+            INSERT INTO note_anchors (note_path, anchor_type, content, relevance, created)
+            VALUES (?, ?, ?, ?, ?)
+        """, (note_path, anchor_type, content, relevance, now))
+        c.commit()
+        return True
+    except Exception as e:
+        print(f"  ⚠️  添加锚点失败: {e}", file=sys.stderr)
+        return False
+
+
+def get_anchors_for_note(note_path: str) -> list:
+    """获取笔记的认知锚点"""
+    c = _get_conn()
+    rows = c.execute("""
+        SELECT * FROM note_anchors
+        WHERE note_path = ?
+        ORDER BY relevance DESC
+    """, (note_path,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def delete_anchors_for_note(note_path: str):
+    """删除笔记的所有锚点（重新抽取前使用）"""
+    c = _get_conn()
+    c.execute("DELETE FROM note_anchors WHERE note_path = ?", (note_path,))
+    c.commit()
+
+
+def get_anchors_by_type(anchor_type: str, limit: int = 20) -> list:
+    """按类型获取锚点"""
+    c = _get_conn()
+    rows = c.execute("""
+        SELECT * FROM note_anchors
+        WHERE anchor_type = ?
+        ORDER BY relevance DESC
+        LIMIT ?
+    """, (anchor_type, limit)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def batch_store_anchors(anchors: list, note_path: str):
+    """批量存储认知锚点（先清空再写入）"""
+    delete_anchors_for_note(note_path)
+    for a in anchors:
+        add_anchor(
+            note_path=note_path,
+            anchor_type=a.get("type", ""),
+            content=a.get("content", ""),
+            relevance=a.get("relevance", 1.0),
+        )
 
 
 def _print_migrate_error(msg: str, detail: str = ""):

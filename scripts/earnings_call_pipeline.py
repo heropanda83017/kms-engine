@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from _path_setup import WIKI_DIR
 电话会议纪要分析管线 — Earnings Call Pipeline v0.1
 
 输入：Reportify.cn 的 Transcript URL 或本地 HTML 文件
@@ -44,7 +45,7 @@ from pathlib import Path
 DEFAULT_COOKIE = "report-token=7ba806568a8fefe6046b0113f117d9fcf082e0c7b6cf999881233af08d1576c3; i18next2=zh-CN"
 
 # wiki 归档目录
-WIKI_EC_DIR = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB/08-investment/06-投研分析/电话会议纪要")
+WIKI_EC_DIR = WIKI_DIR / "08-investment" / "06-投研分析" / "电话会议纪要"
 
 # 行业类型自动识别关键词
 INDUSTRY_KEYWORDS = {

@@ -57,7 +57,7 @@ def scan_sessions(days_back=90, max_files=500):
                 dt = datetime.fromisoformat(session_start.replace('Z', '+00:00'))
                 if dt < cutoff:
                     continue
-            except:
+            except Exception:
                 pass
         
         system_prompt = data.get('system_prompt', '')
@@ -87,7 +87,7 @@ def scan_sessions(days_back=90, max_files=500):
                 try:
                     date_key = datetime.fromisoformat(session_start.replace('Z', '+00:00')).strftime('%Y-%m-%d')
                     daily_active_skills[date_key].update(skills_in_session)
-                except:
+                except Exception:
                     pass
     
     return {

@@ -13,12 +13,12 @@
 import json, subprocess, sys
 from datetime import datetime
 from pathlib import Path
+from _path_setup import WIKI_DIR
 
 # ── 配置 ──
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 KMS_DIR = SCRIPT_DIR.parent
-WIKI_DIR = Path("/mnt/e/AIGC-KB/wiki-AIGC-KB")
 EC_DIR = WIKI_DIR / "08-investment" / "06-投研分析" / "电话会议纪要"
 
 COOKIE = "report-token=7ba806568a8fefe6046b0113f117d9fcf082e0c7b6cf999881233af08d1576c3; i18next2=zh-CN"

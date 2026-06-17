@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-14T10:08:43.911969",
+  "updated_at": "2026-06-17T12:36:37.755873",
   "locked_by": "pipeline",
   "regime": {
     "code": "bull_growth",
@@ -76,7 +76,7 @@
         "track": "TBD",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T19:45:27.962595"
+      "locked_at": "2026-06-15T14:40:37.208275"
     },
     {
       "regime": {
@@ -91,7 +91,7 @@
         "track": "Track A",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T22:15:23.404223"
+      "locked_at": "2026-06-15T14:40:52.982712"
     },
     {
       "regime": {
@@ -106,7 +106,7 @@
         "track": "TBD",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T22:15:23.415261"
+      "locked_at": "2026-06-15T14:40:52.992562"
     },
     {
       "regime": {
@@ -121,7 +121,7 @@
         "track": "Track A",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T22:21:16.169538"
+      "locked_at": "2026-06-15T14:41:08.116369"
     },
     {
       "regime": {
@@ -136,7 +136,7 @@
         "track": "TBD",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T22:21:16.180899"
+      "locked_at": "2026-06-15T14:41:08.124179"
     },
     {
       "regime": {
@@ -151,7 +151,7 @@
         "track": "Track A",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T22:25:21.818191"
+      "locked_at": "2026-06-15T14:42:05.576380"
     },
     {
       "regime": {
@@ -166,7 +166,7 @@
         "track": "TBD",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-13T22:25:21.829364"
+      "locked_at": "2026-06-15T14:42:05.586619"
     },
     {
       "regime": {
@@ -181,7 +181,7 @@
         "track": "Track A",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-14T09:35:32.234439"
+      "locked_at": "2026-06-15T14:49:20.690126"
     },
     {
       "regime": {
@@ -196,7 +196,7 @@
         "track": "TBD",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-14T09:35:32.245821"
+      "locked_at": "2026-06-15T14:49:20.697549"
     },
     {
       "regime": {
@@ -211,7 +211,7 @@
         "track": "Track A",
         "allocation": 0.6
       },
-      "locked_at": "2026-06-14T10:08:43.896881"
+      "locked_at": "2026-06-17T12:36:37.747642"
     }
   ]
 }

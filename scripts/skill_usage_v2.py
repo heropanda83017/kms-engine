@@ -25,7 +25,7 @@ for f in files[-200:]:
     try:
         with open(f, encoding='utf-8', errors='replace') as fh:
             data = json.load(fh)
-    except:
+    except Exception:
         continue
     
     session_count += 1

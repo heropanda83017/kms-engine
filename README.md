@@ -1,167 +1,90 @@
 # KMS Engine — 个人知识管理系统
 
-> 将零散笔记转化为互联的知识网络，AI驱动的知识图谱 + 语义搜索
+> 第二大脑，自进化知识库。35+ 脚本，78+ 测试，10 项核心能力。
 
 ---
 
-## 是什么
+## 能力全景
 
-KMS Engine 是一个**个人知识管理（PKM）系统**，核心目标不是「存笔记」，而是**让知识可发现、可关联、可推理**。
+### 🎯 一键直达
 
-它做了三件事：
+| 你说 | 执行 |
+|:-----|:------|
+| `kms "查资金因子"` | 意图路由 → `kms search --fusion 资金因子` |
+| `kms "看看wiki健康"` | 意图路由 → `kms health --parallel` |
+| `kms "验证笔记 xxx.md"` | 意图路由 → `kms validate xxx.md` |
+| `kms "使用报告"` | 意图路由 → `kms analytics` |
+| `kms "智能路由查资金因子"` | ReAct Router → 思考→行动→观察循环 |
 
-1. **自动抽取知识实体** — 你写笔记，系统自动提取其中的概念、人物、公司、因子等实体
-2. **构建语义知识图谱** — 实体之间的关系自动建立起可查询的知识网络
-3. **智能搜索** — 关键词 + 向量 + 知识图谱 → 结果排序更准
+### 🤖 ReAct Agent（5个）
+
+| Agent | 步数 | 循环逻辑 |
+|:------|:----:|:---------|
+| **Router** | 2-3 | 复合意图理解 → 多步工具链（真实调kms search/health/validate等） |
+| **Validator** | 3-4 | 根据笔记大小动态选验证维度（质量/融合/实体/治理） |
+| **Pipeline** | 3-4 | 根据frontmatter/字数动态编排阶段（validate→fuse→guard→link） |
+| **Enricher** | 3 | analyze→search→append 自动富化背景信息 |
+| **Reviewer** | 2-3 | score→suggest/report→report 质量打分+改进建议 |
+
+### 📋 核心功能
+
+| 功能 | 说明 |
+|:-----|:------|
+| **意图路由** | 12种意图自然语言→命令，无需记忆CLI参数 |
+| **并行编排** | DAG拓扑排序+ThreadPoolExecutor，6路健康检查~1.8x加速 |
+| **多视角验证** | 4路并行：质量(frontmatter/字数/链接) + 融合(smart_fuse) + 实体(KG) + 治理(断裂链接) |
+| **内容流水线** | 6阶段：validate→fuse→link→enrich→review→publish + checkpoint中断恢复 |
+| **使用分析** | SQLite追踪搜索关键词和命令执行，支持 `` 报告 |
+| **会话记忆** | JSON持久化跨会话上下文——最近搜索/笔记/健康检查/命令数 |
+| **安全守卫** | 6种敏感模式：API Key / GitHub Token / JWT / Private Key / AWS Key / Slack Token |
+| **每日晨报** | cron 08:30自动运行：ArXiv RSS抓取 + stale检测 + 健康快照 + 使用统计 + 微信推送 |
+| **用户画像** | 4维度结构化画像（兴趣/风格/决策/信源），集成到status/search/daily-report |
+| **反馈回流** | validate裁决自动回写笔记frontmatter，已修复的issue下次不再告警 |
+| **流水线目录** | 5层结构：01-raw→02-process→03-output→04-system |
+
+### 📈 数据对比
+
+| 指标 | v4.0 | v5.0 |
+|:-----|:----:|:----:|
+| 脚本数 | 25+ | 35+ |
+| 测试数 | 61 | 78+ |
+| ReAct Agent | 0 | 5 |
+| 自动抓取信源 | 0 | 1 (ArXiv) |
+| 用户画像 | ❌ | ✅ |
 
 ---
 
-## 核心功能
-
-| 功能 | 命令 | 说明 |
-|:-----|:-----|:-----|
-| 知识图谱搜索 | `kms search <词> --fusion` | KG+RRF 融合搜索，结果带实体增强 |
-| 实体关系查询 | `kms kg related <实体名>` | 查看一个实体的所有关联实体和关系 |
-| 路径推理 | `kms kg path <源> <目标>` | 查找两个实体之间的关联路径（BFS） |
-| 实体合并 | `kms kg merge <规范名> <别名...>` | 合并同义实体（如"资金因子v4"→"资金因子"） |
-| 笔记实体抽取 | `kms kg extract <笔记.md>` | 从笔记正文中提取实体和关系 |
-| 全库扫描 | `kms kg scan` | 增量扫描全库，提取实体（跳过已处理的） |
-| 一键归档 | `kms insight-capture finalize <笔记路径>` | 归档时自动完成实体抽取 |
-| Wiki 治理 | `python scripts/wiki_audit.py` | 检测冗余、归类异常、大文件 |
-| 健康检查 | `kms health` | 6维健康检查（断裂链接/frontmatter/空壳等） |
-
----
-
-## 快速开始
+## 🛠 安装
 
 ```bash
-# 环境要求
+git clone https://github.com/heropanda83017/kms-engine.git
+cd kms-engine
 pip install -r requirements.txt
-
-# 查看系统状态
-python scripts/kms.py status
-
-# 搜索笔记（关键词）
-python scripts/kms.py search <关键词>
-
-# 搜索笔记（KG+RRF融合）
-python scripts/kms.py search <关键词> --fusion
-
-# 查看知识图谱统计
-python scripts/kms.py kg stats
-
-# 全库扫描实体抽取
-python scripts/kms.py kg scan
-
-# 知识图谱路径查询
-python scripts/kms.py kg path <源实体> <目标实体>
 ```
 
----
-
-## 架构
+## 📁 文件结构
 
 ```
-┌─────────────────────────────────────────────┐
-│ Layer 3: 用户接口                            │
-│  kms CLI / insight_capture finalize          │
-├─────────────────────────────────────────────┤
-│ Layer 2: 实体抽取层                           │
-│  kg_extract.py → LLM (DeepSeek V4 Flash)     │
-│                 → JSON 提取 + 重试(2次)       │
-├─────────────────────────────────────────────┤
-│ Layer 1: 存储+查询层 (SQLite)                  │
-│  kg_store.py                                  │
-│  ├── entities (845+ 实体, 8种类型)             │
-│  ├── relations (1460+ 关系, 6种类型)           │
-│  ├── find_path — BFS路径搜索                   │
-│  ├── merge_entities — 同义实体合并              │
-│  └── search_entities — 名称/别名搜索            │
-├─────────────────────────────────────────────┤
-│ Layer 0: RRF 搜索引擎                          │
-│  kms.db — FTS5 + MiniMax Embedding 1536d     │
-│          → RRF k=60 融合                      │
-└─────────────────────────────────────────────┘
+kms-engine/
+├── scripts/            35+命令 (kms.py 统一入口)
+│   ├── kms_router.py        意图路由(12种自然语言→命令)
+│   ├── kms_orchestrator.py  并行编排引擎(拓扑排序+线程池)
+│   ├── kms_validator.py     4路笔记验证+反馈回写frontmatter
+│   ├── kms_pipeline.py      6阶段内容流水线+checkpoint
+│   ├── kms_analytics.py     SQLite使用分析追踪
+│   ├── kms_session.py       跨会话记忆+用户画像
+│   ├── kms_guard.py         敏感信息检测(6种模式)
+│   ├── kms_react.py         ReAct Agent(5个: Router/Validator/Pipeline/Enricher/Reviewer)
+│   ├── kms_daily_report.py  每日晨报(ArXiv RSS+stale+健康+推送)
+│   └── ... (25+原有脚本)
+├── config/             配置文件
+├── templates/          笔记模板
+└── tests/              78+测试
 ```
 
-### 知识图谱实体类型
+## 📜 更新日志
 
-| 类型 | 说明 | 示例 |
-|:-----|:-----|:-----|
-| `concept` | 核心概念 | 安全边际、RRF混合搜索 |
-| `person` | 人物 | Andrej Karpathy、Tiago Forte |
-| `company` | 公司/机构 | OpenAI、DeepSeek、中际旭创 |
-| `factor` | 投资因子 | 资金流因子、CK瓶颈因子 |
-| `indicator` | 指标/度量 | IC值、PE分位数、RSI |
-| `method` | 方法/框架 | Zettelkasten、PARA、RRF |
-| `tool` | 工具/系统 | Obsidian、MiniMax、Hermes |
-| `domain` | 领域/学科 | 知识管理、量化投资、AI工程 |
-
-### 关系类型
-
-`is_a` · `part_of` · `uses` · `related_to` · `influences` · `contrasts_with`
-
----
-
-## 关键命令速查
-
-```bash
-# 检索
-kms search <词>                         # 关键词搜索
-kms search <词> --rrf                   # RRF 混合搜索
-kms search <词> --fusion                # KG+RRF 融合搜索（推荐）
-
-# 知识图谱
-kms kg stats                            # 图谱统计
-kms kg search <词>                      # 搜索实体
-kms kg related <实体名>                  # 实体关联图
-kms kg path <源> <目标>                  # 实体路径
-kms kg extract <笔记.md>                 # 提取实体
-kms kg merge <规范名> <别名...>          # 合并同义实体
-kms kg scan                             # 全库扫描
-
-# 系统维护
-kms health                              # 健康检查
-kms index build                         # 构建RRF索引
-kms link                                # 更新链接
-kms insight-capture finalize <路径>      # 一键归档
-
-# Wiki 治理
-python scripts/wiki_audit.py            # 治理报告
-python scripts/wiki_deep_scan.py        # 深度扫描
-```
-
----
-
-## 数据指标（当前）
-
-| 指标 | 数值 |
-|:-----|:----:|
-| 笔记总数 | 285+ |
-| 知识图谱实体 | 1,409 |
-| 知识图谱关系 | 1,462 |
-| 已关联笔记 | 228 |
-| 实体类型 | 8 种 |
-| 关系类型 | 6 种 |
-
----
-
-## 技术栈
-
-- **Python 3.11+** — 核心语言
-- **SQLite + WAL** — 知识图谱存储（零依赖）
-- **DeepSeek V4 Flash** — 实体抽取 LLM
-- **MiniMax Embedding (1536d)** — 向量检索
-- **SQLite FTS5** — 全文检索
-- **RRF (k=60)** — 混合搜索融合算法
-
----
-
-## 相关项目
-
-- [`wiki-AIGC-KB`](https://github.com/) — 知识库内容（Markdown 笔记）
-- [`investment-engine`](https://github.com/) — 投资因子引擎
-
----
-
-> ⚠️ 本系统为个人知识管理设计，不构成任何投资建议。
+| 日期 | 版本 | 内容 |
+|:-----|:----|:------|
+| 2026-06-17 | v5.0 | ReAct 5 Agent + 自动抓取ArXiv + 用户画像 + 反馈回流 + ECC体系优化 |
+| 2026-06-15 | v4.3 | 7项体系升级：Intent Router / Orchestrator / Validator / Pipeline / Analytics / Session / Guard |

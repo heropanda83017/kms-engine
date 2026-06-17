@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from _path_setup import KMS_ROOT
 Investment MCP Server — 将投资体系暴露为 MCP 工具
 
 协议: JSON-RPC 2.0 over stdio (MCP 2024-11-05 / FastMCP)
@@ -39,7 +40,7 @@ PROFILE = Path(os.environ.get(
 ))
 SCRIPTS = PROFILE / 'scripts'
 DATA = PROFILE / 'data'
-KMS_CONFIG = Path('/mnt/e/AIGC-KB/kms-engine/config')
+KMS_CONFIG = KMS_ROOT / 'config'
 STRATEGY_FILE = KMS_CONFIG / 'strategy_current.json'
 
 mcp = FastMCP("investment", instructions="Investment system: strategy, market, health, cost data")

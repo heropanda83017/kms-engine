@@ -428,8 +428,16 @@ def cmd_finalize(args):
         if HAS_CHECKPOINT:
             cp_step_done(cp_name, "kg_extract")
     else:
-        print("\
-[6/6] 🧠 知识图谱实体抽取 ✅ (已跳过)")
+        print("\n[6/7] 🧠 知识图谱实体抽取 ✅ (已跳过)")
+
+    # ── Step 7: KG 关系图可视化 ──
+    if "kg_visual" not in completed:
+        print("\n[7/7] 📊 实体关系图生成")
+        _run_kg_visual(wiki_path)
+        if HAS_CHECKPOINT:
+            cp_step_done(cp_name, "kg_visual")
+    else:
+        print("\n[7/7] 📊 实体关系图生成 ✅ (已跳过)")
 
     print("=" * 50)
     print("  🎉 一键归档完成")
@@ -437,6 +445,31 @@ def cmd_finalize(args):
         cp_mark_complete(cp_name)
         print(f"  📍 Checkpoint '{cp_name}' 已完成")
     print("=" * 50)
+
+
+def _run_kg_visual(wiki_path: Path):
+    """调用 kg_graph_visual.py 生成实体关系图"""
+    kg_visual = SCRIPTS_DIR / "kg_graph_visual.py"
+    if not kg_visual.exists():
+        print("  ⚠️  kg_graph_visual.py 未安装，跳过关系图")
+        return
+    try:
+        r = subprocess.run(
+            [sys.executable, str(kg_visual), str(wiki_path)],
+            capture_output=True, text=True, timeout=30,
+        )
+        # 查找生成的 HTML 文件
+        html_path = wiki_path.parent / "_kg" / f"{wiki_path.stem[:50]}-graph.html"
+        if html_path.exists():
+            print(f"  ✅ 关系图已生成: {html_path}")
+        else:
+            last = [l.strip() for l in r.stdout.split("\n") if l.strip()]
+            if last:
+                print(f"  {last[-1]}")
+    except subprocess.TimeoutExpired:
+        print("  ⚠️  kg_graph_visual 超时，跳过关系图")
+    except Exception as e:
+        print(f"  ⚠️  关系图生成异常: {e}")
 
 
 def _run_kg_extract(wiki_path: Path):

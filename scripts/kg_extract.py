@@ -115,9 +115,11 @@ def extract_entities(content: str, max_retries: int = 2) -> Optional[dict]:
 
     from litellm import completion
 
-    # 限制输入长度（前 4000 字符 + 后 1000 字符）
-    if len(content) > 5000:
-        content = content[:4000] + "\n...(中间省略)...\n" + content[-1000:]
+    # 输入长度 — V4 Flash 支持 1M context，无需截断
+    # 但为防止极端超大笔记（>1M tokens），保留安全上限
+    MAX_INPUT_CHARS = 800000  # ~200K tokens，留 80% 余量
+    if len(content) > MAX_INPUT_CHARS:
+        content = content[:600000] + "\n...(中间省略)...\n" + content[-200000:]
 
     for attempt in range(max_retries):
         try:
@@ -130,7 +132,7 @@ def extract_entities(content: str, max_retries: int = 2) -> Optional[dict]:
                 api_key=API_KEY,
                 api_base=API_BASE,
                 temperature=0.1,
-                max_tokens=4096,
+                max_tokens=16384,
             )
             raw = resp.choices[0].message.content.strip()
 
@@ -153,11 +155,15 @@ def extract_entities(content: str, max_retries: int = 2) -> Optional[dict]:
                 if isinstance(entities, list) and isinstance(relations, list):
                     # 清理：过滤掉没有 name 的实体
                     entities = [e for e in entities if e.get("name", "").strip()]
-                    # 清理：过滤掉 source/target 为空的 relation
                     relations = [r for r in relations
                                  if r.get("source", "").strip()
                                  and r.get("target", "").strip()]
-                    return {"entities": entities, "relations": relations}
+                    anchors = result.get("anchors", [])
+                    if isinstance(anchors, list):
+                        anchors = [a for a in anchors
+                                   if a.get("type", "").strip()
+                                   and a.get("content", "").strip()]
+                    return {"entities": entities, "relations": relations, "anchors": anchors}
 
             print(f"  ⚠️  LLM 返回格式异常 (attempt {attempt+1}): {raw[:200]}", file=sys.stderr)
         except Exception as e:
@@ -209,6 +215,8 @@ def extract_note(note_path: Path, dry_run: bool = False,
     # 存储
     if not dry_run and not no_store:
         batch_store(entities, relations, note_rel)
+        from kg_store import batch_store_anchors
+        batch_store_anchors(result.get("anchors", []), note_rel)
         _save_progress(note_rel)
 
     if dry_run:

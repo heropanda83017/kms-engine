@@ -15,9 +15,10 @@ import json
 import os
 import sys
 from pathlib import Path
+from _path_setup import KMS_ROOT
 
 # ── 路径 ──
-KMS_ENGINE = Path("/mnt/e/AIGC-KB/kms-engine")
+KMS_ENGINE = KMS_ROOT
 sys.path.insert(0, str(KMS_ENGINE))
 sys.path.insert(0, str(KMS_ENGINE / "scripts"))
 
@@ -83,8 +84,43 @@ def check_all(verbose: bool = False) -> list[str]:
     return lines
 
 
+def auto_repair(issues: list[str], dry_run: bool = True) -> int:
+    """自动修复可恢复的问题
+
+    Args:
+        issues: check_all() 返回的问题列表
+        dry_run: True=仅预览，False=实际修复
+
+    Returns:
+        已修复数量
+    """
+    import re
+    from scripts.checkpoint_utils import get_state, clear, start
+
+    repaired = 0
+    for issue in issues:
+        # 匹配 "checkpoint 'xxx' 中断 — N/M 步骤完成（最后更新 Xh 前）"
+        m = re.search(r"'([^']+)'", issue)
+        if not m:
+            continue
+        name = m.group(1)
+        state = get_state(name)
+        if not state:
+            continue
+        if state.get("status") == "in_progress":
+            if dry_run:
+                print(f"  💡 可修复: checkpoint '{name}' → 重置为 ready（clear）")
+            else:
+                clear(name)
+                print(f"  ✅ 已修复: checkpoint '{name}' → 已清除")
+                repaired += 1
+    return repaired
+
+
 def main():
     verbose = "--verbose" in sys.argv
+    do_repair = "--repair" in sys.argv
+    dry_run = "--dry-run" in sys.argv
 
     if verbose:
         # 全量报告模式
@@ -121,7 +157,24 @@ def main():
             print("⚠️ Checkpoint 健康巡检发现问题:")
             for line in issues:
                 print(f"  {line}")
-        # 静默退出 — 无输出 = 无事可报
+
+        # 自动修复
+        if do_repair and issues:
+            if dry_run:
+                print()
+                print("🔧 以下问题可自动修复（使用 --repair 执行）:")
+                auto_repair(issues, dry_run=True)
+            else:
+                print()
+                print("🔧 自动修复中...")
+                fixed = auto_repair(issues, dry_run=False)
+                if fixed > 0:
+                    print(f"  ✅ {fixed} 个 checkpoint 已重置")
+                else:
+                    print("  ➖ 无可自动修复的问题")
+        elif issues and not do_repair:
+            print()
+            print("💡 使用 --repair 自动修复 或 --dry-run 预览修复计划")
 
 
 if __name__ == "__main__":

@@ -94,7 +94,7 @@ def main():
                 fm_data = yaml.safe_load(fm_match.group(1))
                 if isinstance(fm_data, dict) and 'description' in fm_data:
                     desc = str(fm_data['description']).strip()
-        except:
+        except Exception:
             pass
         
         triggers = extract_triggers(desc)
