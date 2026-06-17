@@ -1,90 +1,131 @@
 # KMS Engine — 个人知识管理系统
 
-> 第二大脑，自进化知识库。35+ 脚本，78+ 测试，10 项核心能力。
+> 第二大脑 · 自进化知识库 · AI 驱动的知识图谱
 
 ---
 
-## 能力全景
+## 概览
 
-### 🎯 一键直达
+**KMS Engine** 是一个个人知识管理系统，基于语义搜索 + 知识图谱 + AI 辅助，帮你构建"第二大脑"。
 
-| 你说 | 执行 |
-|:-----|:------|
-| `kms "查资金因子"` | 意图路由 → `kms search --fusion 资金因子` |
-| `kms "看看wiki健康"` | 意图路由 → `kms health --parallel` |
-| `kms "验证笔记 xxx.md"` | 意图路由 → `kms validate xxx.md` |
-| `kms "使用报告"` | 意图路由 → `kms analytics` |
-| `kms "智能路由查资金因子"` | ReAct Router → 思考→行动→观察循环 |
-
-### 🤖 ReAct Agent（5个）
-
-| Agent | 步数 | 循环逻辑 |
-|:------|:----:|:---------|
-| **Router** | 2-3 | 复合意图理解 → 多步工具链（真实调kms search/health/validate等） |
-| **Validator** | 3-4 | 根据笔记大小动态选验证维度（质量/融合/实体/治理） |
-| **Pipeline** | 3-4 | 根据frontmatter/字数动态编排阶段（validate→fuse→guard→link） |
-| **Enricher** | 3 | analyze→search→append 自动富化背景信息 |
-| **Reviewer** | 2-3 | score→suggest/report→report 质量打分+改进建议 |
-
-### 📋 核心功能
-
-| 功能 | 说明 |
-|:-----|:------|
-| **意图路由** | 12种意图自然语言→命令，无需记忆CLI参数 |
-| **并行编排** | DAG拓扑排序+ThreadPoolExecutor，6路健康检查~1.8x加速 |
-| **多视角验证** | 4路并行：质量(frontmatter/字数/链接) + 融合(smart_fuse) + 实体(KG) + 治理(断裂链接) |
-| **内容流水线** | 6阶段：validate→fuse→link→enrich→review→publish + checkpoint中断恢复 |
-| **使用分析** | SQLite追踪搜索关键词和命令执行，支持 `` 报告 |
-| **会话记忆** | JSON持久化跨会话上下文——最近搜索/笔记/健康检查/命令数 |
-| **安全守卫** | 6种敏感模式：API Key / GitHub Token / JWT / Private Key / AWS Key / Slack Token |
-| **每日晨报** | cron 08:30自动运行：ArXiv RSS抓取 + stale检测 + 健康快照 + 使用统计 + 微信推送 |
-| **用户画像** | 4维度结构化画像（兴趣/风格/决策/信源），集成到status/search/daily-report |
-| **反馈回流** | validate裁决自动回写笔记frontmatter，已修复的issue下次不再告警 |
-| **流水线目录** | 5层结构：01-raw→02-process→03-output→04-system |
-
-### 📈 数据对比
-
-| 指标 | v4.0 | v5.0 |
-|:-----|:----:|:----:|
-| 脚本数 | 25+ | 35+ |
-| 测试数 | 61 | 78+ |
-| ReAct Agent | 0 | 5 |
-| 自动抓取信源 | 0 | 1 (ArXiv) |
-| 用户画像 | ❌ | ✅ |
+| 指标 | 数据 |
+|:-----|:-----|
+| Python 脚本 | 35+ |
+| 测试用例 | 78+ |
+| 核心能力 | 10 项 |
+| 数据存储 | SQLite + JSON + Markdown |
 
 ---
 
-## 🛠 安装
+## 核心能力
+
+### 📝 笔记管理
+- `kms create` — 创建新笔记（自动选择目录）
+- `kms search` — 全文检索 + 语义融合搜索 (RRF)
+- `kms link` — 自动维护双向链接
+- `kms score` — AI 质量打分 (0-10)
+- `kms enrich` — 背景富化（补充搜索信息）
+- `kms smart-fuse` — 智能融合（查找最佳融合目标）
+- `kms validate` — 链接完整性验证
+
+### 🧠 知识图谱
+- `kms kg` — 知识图谱管理（实体抽取 + 关系构建）
+- `kms resolve` — 三层技能架构路由解析
+
+### 🤖 AI Agent
+- **PM Agent** — 项目管理智能体
+- **GroupChat** — 多 Agent 对话协作
+- **TaskGraph** — DAG 任务编排
+- **SkillLibrary** — 技能库管理
+- **KG Graph Visual** — 知识图谱可视化
+- **KG Image Gen** — 知识图谱图片生成
+- **Agent Dashboard** — Agent 监控面板
+- **Agent Protocol** — Agent 通信协议
+- **Agent Sandbox** — Agent 沙盒环境
+- **Agent Template** — Agent 模板系统
+
+### 🔄 自动化
+- `daily_brief` — 每日知识简报
+- `delegate_retry_wrapper` — 带重试的任务委托
+- `checkpoint_watchdog` — 检查点中断检测
+- `kms health-daily/weekly` — 系统健康巡检
+
+---
+
+## 快速开始
 
 ```bash
-git clone https://github.com/heropanda83017/kms-engine.git
-cd kms-engine
-pip install -r requirements.txt
+# 查看系统状态
+python3 scripts/kms_core.py status
+
+# 搜索知识库
+python3 scripts/kms_core.py search "机器学习" --fusion
+
+# 创建新笔记
+python3 scripts/kms_core.py create "笔记标题"
+
+# 运行每日巡检
+python3 scripts/kms_health_daily.py
 ```
 
-## 📁 文件结构
+---
+
+## 架构
 
 ```
-kms-engine/
-├── scripts/            35+命令 (kms.py 统一入口)
-│   ├── kms_router.py        意图路由(12种自然语言→命令)
-│   ├── kms_orchestrator.py  并行编排引擎(拓扑排序+线程池)
-│   ├── kms_validator.py     4路笔记验证+反馈回写frontmatter
-│   ├── kms_pipeline.py      6阶段内容流水线+checkpoint
-│   ├── kms_analytics.py     SQLite使用分析追踪
-│   ├── kms_session.py       跨会话记忆+用户画像
-│   ├── kms_guard.py         敏感信息检测(6种模式)
-│   ├── kms_react.py         ReAct Agent(5个: Router/Validator/Pipeline/Enricher/Reviewer)
-│   ├── kms_daily_report.py  每日晨报(ArXiv RSS+stale+健康+推送)
-│   └── ... (25+原有脚本)
-├── config/             配置文件
-├── templates/          笔记模板
-└── tests/              78+测试
+输入层                   处理层                   存储层
+├── 手动创建             ├── AI 语义理解         ├── SQLite (kg.db)
+├── 网页抓取             ├── 实体抽取            ├── JSON 注册表
+├── 文档导入             ├── 关系构建            ├── Markdown wiki
+├── API 接入             ├── 质量评分            └── 缓存 (cache/)
+└── Agent 协作           └── 融合搜索
 ```
 
-## 📜 更新日志
+---
 
-| 日期 | 版本 | 内容 |
-|:-----|:----|:------|
-| 2026-06-17 | v5.0 | ReAct 5 Agent + 自动抓取ArXiv + 用户画像 + 反馈回流 + ECC体系优化 |
-| 2026-06-15 | v4.3 | 7项体系升级：Intent Router / Orchestrator / Validator / Pipeline / Analytics / Session / Guard |
+## 数据源
+
+| 信源 | 状态 | 说明 |
+|:-----|:------|:------|
+| baostock | ✅ | A 股数据（对齐投资体系） |
+| wiki-AIGC-KB | ✅ | 主知识库 |
+| KMS 注册表 | ✅ | 模块索引 |
+
+---
+
+## 配置
+
+`config/config.yaml` — 主要配置项：
+
+```yaml
+storage:
+  kg_db: config/kg-store/kg.db    # 知识图谱数据库
+  registry: config/.link_registry.json  # 链接注册表
+search:
+  mode: rrf                      # 融合搜索模式
+  top_k: 10                      # 默认返回数
+```
+
+---
+
+## 依赖
+
+| 依赖 | 用途 |
+|:-----|:------|
+| Python 3.14+ | 运行环境 |
+| sqlite3 | 知识图谱存储 |
+| json | 注册表/配置 |
+| re / pathlib | 文件操作 |
+
+---
+
+## 相关项目
+
+- [investment-engine](https://github.com/heropanda83017/investment-engine) — A 股量化投资系统（共享数据源）
+- [karpathy-llm-wiki](https://github.com/heropanda83017/karpathy-llm-wiki) — Wiki 维护技能
+- [book-note-maker](https://github.com/heropanda83017/book-note-maker) — 读书笔记技能
+- [meeting-minutes](https://github.com/heropanda83017/meeting-minutes) — 公文排版技能
+
+---
+
+> 本系统仅供个人学习研究使用。
