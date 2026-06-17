@@ -382,7 +382,14 @@ def main(cli_args: list[str] | None = None):
         print(f"  {icons[name]} {name}: {len(items)}")
 
     if args.report:
-        report = generate_report(files, **results)
+        report = generate_report(
+            files,
+            orphans=results.get("orphan", []),
+            broken=results.get("broken-links", []),
+            no_score=results.get("no-score", []),
+            no_fm=results.get("no-fm", []),
+            shells=results.get("shell", []),
+        )
         report_path = WIKI / "08-investment" / "00-系统" / f"健康检查报告_{datetime.now().strftime('%Y%m%d')}.md"
         report_path.write_text(report, encoding="utf-8")
         print(f"\n📄 报告已生成: {report_path.relative_to(WIKI)}")

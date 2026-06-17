@@ -203,6 +203,13 @@ def cmd_status():
     print()
     print(f"🎬 已处理视频: {video_count} 个")
     print(f"📦 注册表: {reg_size:.1f} KB ({'✅' if REGISTRY.exists() else '❌'})")
+    # 会话上下文
+    try:
+        from kms_session import get_context
+        print()
+        print(get_context())
+    except Exception:
+        pass
 
 def _run_smart_fuse(note_path):
     """为新笔记找融合候选"""
@@ -343,8 +350,20 @@ def cmd_search(args):
             print(f"⚠️ RRF 搜索失败: {e}")
             print("  回退到关键词搜索...")
 
-    # 原始关键词搜索 (fallback)
+    # 原始关键词搜索 (fallback) — 使用TF-IDF排序
     print(f"\n🔍 搜索: {keyword}" + (f" (类型: {type_filter})" if type_filter else ""))
+    try:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+        from kms_search_enhance import TfIdfSearcher
+        searcher = TfIdfSearcher(str(WIKI_DIR))
+        tfidf_results = searcher.search(keyword, top_n=15)
+        if tfidf_results:
+            for r in tfidf_results:
+                print(f"  {r['score']:.4f}  {r['path']}")
+            return
+    except Exception:
+        pass
+    # 降级: 原始关键词搜索 (无排序)
     results = []
     for f in WIKI_DIR.rglob("*.md"):
         if ".obsidian" in str(f):
@@ -500,6 +519,10 @@ def cmd_index(args):
 
 def cmd_health(args):
     """第二大脑健康检查"""
+    if getattr(args, 'parallel', False):
+        from kms_orchestrator import run_health_parallel
+        run_health_parallel()
+        return
     import subprocess as _sp
     cmd = ["python3", str(SCRIPTS_DIR / "health_check.py")]
     if args.check:
@@ -549,6 +572,27 @@ def main():
     health_parser.add_argument("--fix", action="store_true", help="自动修复低风险问题 (空壳删除)")
     health_parser.add_argument("--report", action="store_true", help="生成 Markdown 报告")
     health_parser.add_argument("--watch", action="store_true", help="持续监控 (每 30 分钟)")
+    health_parser.add_argument("--parallel", action="store_true", help="并行执行 6 项检查 (默认串行)")
+
+    # validate
+    validate_parser = sub.add_parser("validate", help="笔记多视角验证: 质量/融合/实体/治理")
+    validate_parser.add_argument("note", help="笔记文件路径")
+    validate_parser.add_argument("--json", action="store_true", help="JSON 格式输出")
+
+    # pipeline
+    pipeline_parser = sub.add_parser("pipeline", help="内容创建流水线: 6 阶段编排")
+    pipeline_parser.add_argument("note", help="笔记文件路径")
+    pipeline_parser.add_argument("--skip", help="跳过阶段 (逗号分隔)")
+    pipeline_parser.add_argument("--resume", action="store_true", help="从中断处恢复")
+
+    # analytics
+    analytics_parser = sub.add_parser("analytics", help="使用分析报告")
+    analytics_parser.add_argument("--days", type=int, default=7, help="统计天数 (默认 7)")
+
+    # react
+    react_parser = sub.add_parser("react", help="ReAct Agent: 思考→行动→观察循环")
+    react_parser.add_argument("agent", choices=["router", "validator", "pipeline", "enricher", "reviewer"], help="Agent 类型")
+    react_parser.add_argument("goal", nargs="+", help="目标描述")
 
     add_checkpoint_subparser(sub)
 
@@ -592,6 +636,18 @@ def main():
         cmd_status()
     elif args.command == "search":
         cmd_search(args)
+        # 自动记录搜索
+        try:
+            from kms_analytics import UsageTracker
+            UsageTracker().log_search(args.query)
+        except Exception:
+            pass
+        try:
+            from kms_session import record_search, record_command
+            record_search(args.query)
+            record_command()
+        except Exception:
+            pass
     elif args.command == "resolve":
         # delegate to three_layer.py
         query = " ".join(args.query)
@@ -610,6 +666,34 @@ def main():
         cmd_checkpoint(args)
     elif args.command == "kg":
         cmd_kg(args)
+    elif args.command == "validate":
+        # 笔记多视角验证
+        from kms_validator import validate as _validate
+        result = _validate(args.note)
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+    elif args.command == "pipeline":
+        # 内容创建流水线
+        cmd = ["python3", str(SCRIPTS_DIR / "kms_pipeline.py"), args.note]
+        if args.skip:
+            cmd.extend(["--skip", args.skip])
+        if args.resume:
+            cmd.append("--resume")
+        subprocess.run(cmd)
+    elif args.command == "analytics":
+        # 使用分析报告
+        from kms_analytics import report as _analytics_report
+        _analytics_report(days=args.days)
+    elif args.command == "react":
+        # ReAct Agent
+        from kms_react import ReActRouter, ReActValidator, ReActPipeline, ReActEnricher, ReActReviewer
+        goal = " ".join(args.goal)
+        agents = {"router": ReActRouter, "validator": ReActValidator, "pipeline": ReActPipeline,
+                  "enricher": ReActEnricher, "reviewer": ReActReviewer}
+        agent_cls = agents.get(args.agent)
+        if agent_cls:
+            agent = agent_cls()
+            agent.run(goal)
 
 
 def cmd_kg(args):
@@ -642,4 +726,26 @@ def cmd_kg(args):
 
 
 if __name__ == "__main__":
+    # Intent Router: 当第一个参数不是已知子命令时走自然语言路由
+    if len(sys.argv) > 1:
+        known_commands = [
+            "link", "fuse", "status", "search", "cleanup",
+            "health", "gate", "checkpoint", "index", "kg",
+            "smart-fuse", "fusion-watch", "enrich", "resolve",
+            "sync-check", "score", "validate", "pipeline", "analytics", "react"
+        ]
+        if sys.argv[1] not in known_commands:
+            from kms_router import IntentRouter
+            router = IntentRouter()
+            text = " ".join(sys.argv[1:])
+            intent, skill, args = router.resolve(text)
+            if intent:
+                # 构造新的 sys.argv
+                if args:
+                    sys.argv = [sys.argv[0], skill] + args.split()
+                else:
+                    sys.argv = [sys.argv[0], skill]
+            else:
+                print(router.help())
+                sys.exit(0)
     main()
